@@ -1,0 +1,216 @@
+{% extends 'teacher/base.html' %}
+{% block title %} Class Details {% endblock title %}
+{% block pagetitle %} Class Details {% endblock pagetitle %}
+{% load static %}
+{% load custom_filters %}
+
+
+{% block main %}
+<div class="inner-content">
+    <div class="buttons  align-items-center justify-content-between" style="margin-top: -25px;">
+        <div class="current_session d-flex mt-4">
+                <div class="current-term mr-4">
+                    <a class=" btn-sm btn-primary text-white p-2">Current Term: </a>
+                    <a  class=" btn-sm btn-dark text-white p-2" style="margin-left: -5px;">{{term_data.current_term}} </a>
+                </div>
+                <div class="current-year"> 
+                    <a class=" btn-sm btn-primary text-white p-2">Current Year: </a>
+                    <a class=" btn-sm btn-dark text-white p-2" style="margin-left: -5px;">{{term_data.current_year}} </a>
+                </div>
+        </div>
+        <div class="class-btns mt-3" pr-5>
+            <a href="/teacher/his_class/{{ schoolclass.classid }}/{{ teacher.teacherid }}" class="btn btn-sm btn-danger">Class Information</a>
+            <a href="/teacher/his_class/view_marks/{{ schoolclass.classid }}/{{ teacher.teacherid }}" class="btn btn-sm btn-danger">View Exam Results</a>
+          
+            <a href="/teacher/his_class/addmarks/{{ schoolclass.classid }}/{{ teacher.teacherid }}?marktype={{ mark_types.0.0 }}" class="btn btn-sm btn-danger">Add Marks</a>
+            
+        </div>
+        
+    </div>
+
+    <div class="class-information">
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <div class="row">
+                    <div class="col-11 ml-3 class-info bg-white shadow p-3 rounded">
+                        <div class="header">
+                            <h6 class="text-center text-uppercase">
+                                Class details
+                            </h6>
+                            <hr>
+                        </div>
+                        <p class="mr-3"><b>Class name:</b> <span class="ml-2">{{ schoolclass.classname }}</span></p> 
+                        <p class="mr-3"><b>Class teacher:</b> <span class="ml-2">{{ teacher.teachernames }}</span></p>
+                    </div>
+                    
+                    <div class="col-12 mt-3">
+                        <!-- donut chart -->
+                        <div class="donut-chart shadow  bg-light pb-2 pb-5">
+                            <h5 class="text-center">{{schoolclass.classname}} Gender Distribution Chart</h5>
+                            <canvas id="genderDonutChart"></canvas>
+                        </div>
+                        <!-- donut chart -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8 " style="font-size: 12px; height: 75vh; overflow: hidden; overflow-y: scroll;" >
+                <!-- teachers -->
+                {% if messages %}
+                    <ul class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" {% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <strong>{{ message }}</strong> 
+                        </div>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+                <div class="table-section">
+                    <table class="table bg-white" border="1" id="table1">
+                        <h5>{{schoolclass.classname}} Teachers</h5>
+                        <thead class="bg-dark text-white">
+                            <tr>
+                                <th>Teacher ID</th>
+                                <th>Teacher name</th>
+                                <th>Email</th>
+                                <th>Subjects</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for teacher_in_class in teachers_in_class %}
+                            <tr>
+                                <td>{{ teacher_in_class.teacherid }}</td>
+                                <td>{{ teacher_in_class.teachernames }}</td>
+                                <td>{{ teacher_in_class.email }}</td>
+                                <td>
+                                    {% for subject in teacher_subjects|get_item:teacher_in_class %}
+                                        {{ subject.subjectname }}{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        No subjects assigned
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="#assign_subject{{ teacher_in_class.teacherid }}" data-toggle="modal"
+                                    class="btn btn-sm btn-primary">Assign</a>
+                                </td>
+                            </tr>
+    
+                            <!-- The modal -->
+                            <div class="modal fade" id="assign_subject{{teacher_in_class.teacherid}}" tabindex="-1" role="dialog" aria-labelledby="assignSubjectsModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="assignSubjectsModalLabel">Assign Subjects to Teacher</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <!-- Add a form for assigning subjects to the teacher -->
+                                            <form method="post" action="/teacher/assign_subject/">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="teacher_id" value="{{ teacher_in_class.teacherid }}">
+                                                <input type="hidden" name="schoolclass" value="{{ schoolclass.classid }}">
+                                                <div class="form-group">
+                                                    <label for="subjects">Select Subjects:</label><br>
+                                                    {% for subject in teacher_in_class.subjects.all %}
+                                                    <input type="checkbox" name="subjects" id="" value="{{subject.subjectid}}">
+                                                    <label for="class-checkbox">{{subject.subjectname}}</label> <br>
+                                                    {% endfor %}
+                                                    
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-sm btn-primary">Assign</button>
+    
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            {% endfor %}
+                        </tbody>
+                        
+                    </table>
+                </div>
+                <div class="mt-2 mb-2">
+                    <hr>
+                </div>
+                <!-- students -->
+                <div class="table-section">
+                    <table class="table bg-white" border="1" id="table">
+                        <h5>{{schoolclass.classname}} Students</h5>
+                        <thead class="bg-dark text-white">
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student name</th>
+                                <th>Gender</th>
+                                <th>House</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                           
+                            {% for student in students %}
+                            <tr>
+                                <td>{{student.stdnumber}}</td>
+                                <td>{{student.childname}}</td>
+                                <td>
+                                    {% if student.gender == 'm' %}
+                                        <p>Male</p>
+                                    {% else %}
+                                        <p>Female</p>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{student.house}}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                        </tbody>
+                        
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    
+</div>
+<!-- charts.js cdn -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const boysCount = {{num_boys}}
+    const girlsCount = {{num_girls}}
+    var donutCtx = document.getElementById("genderDonutChart").getContext("2d");
+    var donutData = {
+        labels: ["Boys", "Girls"],
+        datasets: [{
+            data: [boysCount, girlsCount], // Replace with your actual data
+            backgroundColor: ["red", "#f9b855"],
+        }]
+    };
+    var donutChart = new Chart(donutCtx, {
+        type: "doughnut",
+        data: donutData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: {
+                position: "bottom"
+            },
+            title: {
+                display: true,
+                text: "Gender Distribution"
+            }
+        }
+    });
+   
+
+</script>
+{% endblock main %}

@@ -1,0 +1,81 @@
+{% extends 'teacher/base.html' %}
+{% block title %} Class Details {% endblock title %}
+{% block pagetitle %} Class Details {% endblock pagetitle %}
+{% load static %}
+{% load custom_filters %}
+
+
+{% block main %}
+<div class="inner-content">
+    <div class=" row "  style="margin-bottom: 5px;">
+        <div class="col-md-2 d-flex mr-4 ml-2" >
+            <h5 class="mr-2">Class:</h5>
+            <h5>{{ schoolclass.classname }}</h5>
+        </div>
+        <div class="col-md-4 current_session d-flex mt-2">
+            <div class="current-term mr-2">
+                <a class=" btn-sm btn-primary text-white p-2">Current Term: </a>
+                <a  class=" btn-sm btn-dark text-white p-2" style="margin-left: -5px;">{{term_data.current_term}} </a>
+            </div>
+            <div class="current-year"> 
+                <a class=" btn-sm btn-primary text-white p-2">Current Year: </a>
+                <a class=" btn-sm btn-dark text-white p-2" style="margin-left: -5px;">{{term_data.current_year}} </a>
+            </div>
+        </div>
+        <div class="col-md-5 class-btns">
+            <a href="/teacher/class_details/{{ schoolclass.classid }}/{{ teacher.teacherid }}" class="btn btn-sm btn-danger">View Marks</a>
+            {% for subject in subjects %}
+                <a href="/teacher/class_details/addmarks/{{ schoolclass.classid }}/{{ teacher.teacherid }}/{{ subject.subjectid }}?marktype={{mark_types.0.0}}" class="btn btn-sm btn-danger">Add {{ subject.subjectname }} Marks</a>
+            {% endfor %}
+        </div>
+        
+    </div>
+    <!-- <hr> -->
+    <div class="ml-2 red-btns">
+        {% for mark_type in mark_types %}
+            <a href="/teacher/class_marks/{{ schoolclass.classid }}/{{ teacher.teacherid }}?marktype={{ mark_type.0 }}"
+            class="btn btn-sm btn-warning mb-2 {% if mark_type.0 == mark_type %}active{% endif %}">
+                {{ mark_type.0 }} Results
+            </a>
+        {% endfor %}
+    </div>
+    <div class="ml-2">
+        <h5 class="mb-2"><b>{{mark_type}} Examination results</b></h5>
+    </div>
+    <!-- students for this class -->
+    <div class="table-section" style="font-size: 14px;">
+        <table class="table" id="table" border="1">
+            <thead class=" text-white">
+                <tr>
+                    <th>Reg Number</th>
+                    <th>Name</th>
+                    {% for subject in subjects %}
+                        <th>{{ subject.subjectname }}</th>
+                        <!-- <th>Average</th> Add the header for Average column -->
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for student, marks_dict in student_marks.items %}
+                    <tr>
+                        <td>{{ student.stdnumber }}</td>
+                        <td>{{ student.childname }}</td>
+                        {% for subject in subjects %}
+                            <td>
+                                {% with marks=marks_dict|get_item:subject %}
+                                    {% if marks %}
+                                        {{ marks.average_marks|floatformat:0 }}
+                                    {% else %}
+                                        --
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+    </div>
+</div>
+{% endblock main %}

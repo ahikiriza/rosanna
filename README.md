@@ -1,2 +1,2 @@
 # rosanna
-it is a school management system
+A school management information system for Rosanna Schools

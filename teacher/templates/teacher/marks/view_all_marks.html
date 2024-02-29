@@ -1,0 +1,84 @@
+{% extends 'teacher/base.html' %}
+{% block title %} View Class {% endblock title %}
+{% load static %}
+{% load custom_filters %}
+
+{% block main %}
+<div class="inner-content">
+    <div class="header d-flex" style="margin-bottom: 5px;">
+        <div class="class-btns">
+            <a href="/teacher/his_class/{{ schoolclass.classid }}/{{ teacher.teacherid }}" class="btn btn-sm btn-danger">Class Information</a>
+            <a href="/teacher/his_class/view_marks/{{ schoolclass.classid }}/{{ teacher.teacherid }}" class="btn btn-sm btn-danger">View Exam Results</a>
+            <a href="/teacher/his_class/addmarks/{{ schoolclass.classid }}/{{ teacher.teacherid }}?marktype={{ mark_types.0.0 }}" class="btn btn-sm btn-danger">Add Marks</a>
+        </div>
+    </div>
+    <div class="ml-2">
+        {% for mark_type in mark_types %}
+            <a href="/teacher/his_class/view_mark/{{ schoolclass.classid }}/{{ teacher.teacherid }}?marktype={{ mark_type.0 }}"
+            class="btn btn-sm btn-warning mb-2 {% if mark_type.0 == mark_type %}active{% endif %}">
+                {{ mark_type.1 }} Results
+            </a>
+    {% endfor %}
+    </div>
+    <div class="ml-2">
+        <h5 class="mb-2"><b>{{mark_type}} Examination results</b></h5>
+    </div>
+
+    <div class="table-section" style="font-size: 14px;">
+        <table class="table bg-white" id="table" border="1">
+            <thead class=" text-white">
+                <tr>
+                    <th>Reg Number</th>
+                    <th>Name</th>
+                    {% for subject in subjects %}
+                        <th>{{ subject.subjectname|slice:":3" }}</th>
+                        <!-- <th>Grade</th> -->
+                    {% endfor %}
+                    <th>Total</th>
+                    <!-- <th>Average</th> -->
+                    <th>Position</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student, subjects_data in subjects_marks_data.items %}
+                    <tr>
+                        <td>{{ student.stdnumber }}</td>
+                        <td>{{ student.childname }}</td>
+                        {% for subject_data in subjects_data %}
+                            <!-- <td>{{ subject_data.total_marks }}</td> -->
+                            <td>{{ subject_data.average_marks|floatformat:0 }}</td>
+                        {% endfor %}
+                        <td><b>{{ student.total_average_marks|floatformat:0 }}</b></td>
+                        <!-- <td><b>{{ student.final_average|floatformat:2 }}</b></td> -->
+                        <td>{{student.rank}}</td>
+                        <td>
+                            <a href="/report_card/{{student.pk}}/{{student.rank}}" class="btn btn-success btn-sm generate-report"><i class="fas fa-print    "></i>Print    </a>
+                        </td>
+                    </tr>
+                    </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+       
+
+        $("#print-report").click(function() {
+            var content = document.getElementById("printable-content").innerHTML;
+            var printWindow = window.open("", "_blank");
+            printWindow.document.open();
+            printWindow.document.write(
+                '<html><head><title>Marks Report</title></head><body>' + content + '</body></html>'
+                );
+            printWindow.document.close();
+            printWindow.print();
+        });
+    });
+</script>
+{% endblock main %}
